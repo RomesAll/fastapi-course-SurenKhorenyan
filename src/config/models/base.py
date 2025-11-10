@@ -1,4 +1,4 @@
-from sqlalchemy.orm import DeclarativeBase, declared_attr
+from sqlalchemy.orm import DeclarativeBase, declared_attr, mapped_column, Mapped
 from sqlalchemy import MetaData
 
 class Base(DeclarativeBase):
@@ -9,6 +9,8 @@ class Base(DeclarativeBase):
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
     
+    id: Mapped[int] = mapped_column(primary_key=True)
+
     # def __repr__(self):
     #     self.__table__.columns.keys()
     #     return super().__repr__()
