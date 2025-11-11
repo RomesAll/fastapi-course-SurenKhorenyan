@@ -27,7 +27,9 @@ class CustomersDAO:
                 return None
 
     async def delete_customers_dao():
-        pass
+        async with session_factory() as session:
+            session.delete(CustomersORM)
+            await session.commit()
 
     async def select_customers_dao():
         async with session_factory() as session:
