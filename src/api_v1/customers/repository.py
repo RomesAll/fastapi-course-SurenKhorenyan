@@ -26,7 +26,7 @@ class CustomersDAO:
             except Exception as exc:
                 return None
 
-    async def delete_customers_dao():
+    async def delete_customers_dao(customer: CustomersORM):
         async with session_factory() as session:
             session.delete(CustomersORM)
             await session.commit()
