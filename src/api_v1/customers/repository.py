@@ -30,4 +30,10 @@ class CustomersDAO:
         pass
 
     async def select_customers_dao():
-        pass
+        async with session_factory() as session:
+            try:
+                stmt = select(CustomersORM)
+                result = await session.execute(stmt)
+                return result
+            except Exception as exc:
+                return None
