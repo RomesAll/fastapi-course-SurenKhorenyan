@@ -5,18 +5,18 @@ from sqlalchemy import select
 
 class CustomersDAO:
 
-    async def create_customers_dao(self, user: CustomerPOSTSchemas) -> Optional[int]:
+    async def create_customers_dao(self, customer: CustomerPOSTSchemas) -> Optional[CustomersORM]:
         async with session_factory() as session:
             try:
-                stmt = CustomersORM(**user.model_dump())
+                stmt = CustomersORM(**customer.model_dump())
                 session.add(stmt)
                 await session.flush()
                 await session.commit()
-                return stmt.id
+                return stmt
             except Exception as exc:
                 return None
 
-    async def update_customers_dao(customer: CustomersORM, customer_update: CustomerOPTIONSSchemas):
+    async def update_customers_dao(self, customer: CustomersORM, customer_update: CustomerOPTIONSSchemas) -> Optional[CustomersORM]:
         async with session_factory() as session:
             try:
                 for name, value in customer_update.model_dump(exclude_unset=True).items():
@@ -26,16 +26,17 @@ class CustomersDAO:
             except Exception as exc:
                 return None
 
-    async def delete_customers_dao(customer: CustomersORM):
+    async def delete_customers_dao(self, customer_id: int) -> None:
         async with session_factory() as session:
-            session.delete(CustomersORM)
+            customer = session.get(CustomersORM, customer_id)
+            session.delete(customer)
             await session.commit()
 
-    async def select_customers_dao():
+    async def select_customers_dao(self) -> list[CustomersORM]:
         async with session_factory() as session:
             try:
                 stmt = select(CustomersORM)
                 result = await session.execute(stmt)
-                return result
+                return result.scalars().all()
             except Exception as exc:
                 return None
