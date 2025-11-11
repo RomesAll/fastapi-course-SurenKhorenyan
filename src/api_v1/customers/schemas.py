@@ -9,7 +9,7 @@ class CustomerPOSTSchemas(BaseModel):
 class CustomerGETSchemas(CustomerPOSTSchemas):
     id: int
 
-class CustomerOPTIONSSchemas(CustomerPOSTSchemas):
+class CustomerPATCHSchemas(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
     city: str | None = None

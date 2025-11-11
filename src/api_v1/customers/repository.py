@@ -1,5 +1,5 @@
 from config import session_factory, CustomersORM
-from .schemas import CustomerPOSTSchemas, CustomerOPTIONSSchemas
+from .schemas import CustomerPOSTSchemas, CustomerPATCHSchemas
 from typing import Optional
 from sqlalchemy import select
 
@@ -16,9 +16,10 @@ class CustomersDAO:
             except Exception as exc:
                 return None
 
-    async def update_customers_dao(self, customer: CustomersORM, customer_update: CustomerOPTIONSSchemas) -> Optional[CustomersORM]:
+    async def update_customers_dao(self, customer_id: int, customer_update: CustomerPATCHSchemas) -> Optional[CustomersORM]:
         async with session_factory() as session:
             try:
+                customer = await session.get(CustomersORM, customer_id)
                 for name, value in customer_update.model_dump(exclude_unset=True).items():
                     setattr(customer, name, value)
                 await session.commit()
