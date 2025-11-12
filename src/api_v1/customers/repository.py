@@ -41,3 +41,13 @@ class CustomersDAO:
                 return result.scalars().all()
             except Exception as exc:
                 return None
+            
+    async def get_customers_by_id_dao(self, customer_id: int) -> CustomersORM:
+        async with session_factory() as session:
+            try:
+                query = await session.get(CustomersORM, customer_id)
+                customer = session.execute(query)
+                if customer.id:
+                    return customer.id
+            except:
+                return None
