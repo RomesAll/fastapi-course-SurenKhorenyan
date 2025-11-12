@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from .service import *
 from .depends import ProductsIdDep, ProductsInfoDep
 
-router = APIRouter()
+router = APIRouter(prefix="/products", tags=["Products"])
 
 @router.get('/all')
 async def select_products():

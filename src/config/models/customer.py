@@ -1,6 +1,5 @@
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from .base import Base
-from .products import ProductsORM
 
 class CustomersORM(Base):
     username: Mapped[str]

@@ -2,7 +2,6 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import ForeignKey
 from .base import Base
 import enum
-from .customer import CustomersORM
 
 class ComplexityEnum(enum.Enum):
     hard = "hard"
