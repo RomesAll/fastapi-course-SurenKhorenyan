@@ -1,8 +1,8 @@
 from .repository import *
 from .schemas import *
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from .service import *
-from .depends import CustomersIdDep, get_customers_by_id
+from .depends import CustomersIdDep
 
 router = APIRouter()
 

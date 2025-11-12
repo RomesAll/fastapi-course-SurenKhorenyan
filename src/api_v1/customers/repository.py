@@ -1,4 +1,5 @@
-from config import session_factory, CustomersORM
+from config import session_factory
+from config.models import CustomersORM
 from .schemas import CustomerPOSTSchemas, CustomerPATCHSchemas
 from typing import Optional
 from sqlalchemy import select

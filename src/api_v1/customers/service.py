@@ -1,4 +1,3 @@
-from config import session_factory, CustomersORM
 from .schemas import *
 from .repository import CustomersDAO
 

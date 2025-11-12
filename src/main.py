@@ -1,20 +1,21 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from config import engine, session_factory, BASE_DIR, ProductsORM, CustomersORM, ComplexityEnum, Base
+from config import session_factory
 from sqlalchemy import text
 from api_v1 import router
 import uvicorn
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     pass
+    # async with engine.begin() as conn:
+    #     # await conn.run_sync(Base.metadata.drop_all)
+    #     await conn.run_sync(Base.metadata.create_all)
+    # yield
+    # async with engine.begin() as conn:
+    #     await conn.run_sync(Base.metadata.drop_all)
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.include_router(router)
 
 @app.get("/version")
