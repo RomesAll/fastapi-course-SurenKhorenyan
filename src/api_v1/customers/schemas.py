@@ -13,3 +13,6 @@ class CustomerPATCHSchemas(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
     city: str | None = None
+
+class CustomerRelSchemas(CustomerGETSchemas):
+    products: list["ProductsORM"]
