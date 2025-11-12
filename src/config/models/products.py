@@ -1,6 +1,7 @@
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from .base import Base
 import enum
+from .customer import CustomersORM
 
 class ComplexityEnum(enum.Enum):
     hard = "hard"
@@ -12,3 +13,4 @@ class ProductsORM(Base):
     desc: Mapped[str] = mapped_column(default='...')
     duration_hours: Mapped[int]
     complexity: Mapped["ComplexityEnum"]
+    customer: Mapped["CustomersORM"] = relationship(back_populates="products")

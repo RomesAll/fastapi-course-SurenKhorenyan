@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException
 from .repository import CustomersDAO
 from typing import Annotated
+from .schemas import CustomerPATCHSchemas
 
 async def get_customers_by_id(customer_id: int):
     result_query = await CustomersDAO().get_customers_by_id_dao(customer_id)
@@ -10,3 +11,4 @@ async def get_customers_by_id(customer_id: int):
     
 
 CustomersIdDep = Annotated[int, Depends(get_customers_by_id)]
+CustomersInfoDep = Annotated[CustomerPATCHSchemas, Depends(CustomerPATCHSchemas)]

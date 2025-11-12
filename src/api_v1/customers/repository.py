@@ -21,7 +21,10 @@ class CustomersDAO:
         async with session_factory() as session:
             try:
                 customer = await session.get(CustomersORM, customer_id)
-                for name, value in customer_update.model_dump(exclude_unset=True).items():
+                customer_new_info = customer_update.model_dump(exclude_none=True).items()
+                if not customer_new_info:
+                    return customer
+                for name, value in customer_new_info:
                     setattr(customer, name, value)
                 await session.commit()
                 return customer

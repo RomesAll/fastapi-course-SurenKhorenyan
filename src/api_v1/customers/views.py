@@ -2,7 +2,7 @@ from .repository import *
 from .schemas import *
 from fastapi import APIRouter, HTTPException
 from .service import *
-from .depends import CustomersIdDep
+from .depends import CustomersIdDep, CustomersInfoDep
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def create_customers(customer: CustomerPOSTSchemas):
     raise HTTPException(status_code=400, detail='Bad request')
 
 @router.patch('/update')
-async def update_customers(customer_id: CustomersIdDep, customer_info: CustomerPATCHSchemas):
+async def update_customers(customer_id: CustomersIdDep, customer_info: CustomersInfoDep):
     result = await CustomersService().update_customers_service(customer_id, customer_info)
     if result:
         return result
