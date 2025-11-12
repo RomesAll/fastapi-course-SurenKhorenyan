@@ -30,8 +30,8 @@ class CustomersDAO:
 
     async def delete_customers_dao(self, customer_id: int) -> None:
         async with session_factory() as session:
-            customer = session.get(CustomersORM, customer_id)
-            session.delete(customer)
+            customer = await session.get(CustomersORM, customer_id)
+            await session.delete(customer)
             await session.commit()
 
     async def select_customers_dao(self) -> list[CustomersORM]:
@@ -46,8 +46,7 @@ class CustomersDAO:
     async def get_customers_by_id_dao(self, customer_id: int) -> CustomersORM:
         async with session_factory() as session:
             try:
-                query = await session.get(CustomersORM, customer_id)
-                customer = session.execute(query)
+                customer = await session.get(CustomersORM, customer_id)
                 if customer.id:
                     return customer.id
             except:
