@@ -23,5 +23,5 @@ class ProductsService:
     async def select_products_service(self):
         service = ProductsDAO()
         orm_model = await service.select_products_dao()
-        dto_model = [ProductGETSchemas.model_validate(row, from_attributes=True) for row in orm_model] if orm_model else None
+        dto_model = [ProductRelSchemas.model_validate(row, from_attributes=True) for row in orm_model] if orm_model else None
         return dto_model

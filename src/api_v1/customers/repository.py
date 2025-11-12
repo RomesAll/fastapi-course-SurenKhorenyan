@@ -3,6 +3,8 @@ from config.models import CustomersORM
 from .schemas import CustomerPOSTSchemas, CustomerPATCHSchemas
 from typing import Optional
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from config.models import ProductsORM
 
 class CustomersDAO:
 
@@ -40,7 +42,7 @@ class CustomersDAO:
     async def select_customers_dao(self) -> list[CustomersORM]:
         async with session_factory() as session:
             try:
-                stmt = select(CustomersORM)
+                stmt = select(CustomersORM).options(selectinload(ProductsORM))
                 result = await session.execute(stmt)
                 return result.scalars().all()
             except Exception as exc:

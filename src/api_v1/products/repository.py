@@ -1,8 +1,10 @@
 from config import session_factory
 from config.models import ProductsORM
-from .schemas import ProductPOSTSchemas, ProductPATCHSchemas
+from .schemas import ProductPOSTSchemas, ProductPATCHSchemas, ProductRelSchemas
 from typing import Optional
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from config.models import CustomersORM
 
 class ProductsDAO:
 
@@ -40,7 +42,7 @@ class ProductsDAO:
     async def select_products_dao(self) -> list[ProductsORM]:
         async with session_factory() as session:
             try:
-                stmt = select(ProductsORM)
+                stmt = select(ProductsORM).options(joinedload(CustomersORM.products))
                 result = await session.execute(stmt)
                 return result.scalars().all()
             except Exception as exc:

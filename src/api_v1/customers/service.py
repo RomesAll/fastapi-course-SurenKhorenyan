@@ -23,5 +23,5 @@ class CustomersService:
     async def select_customers_service(self):
         service = CustomersDAO()
         orm_model = await service.select_customers_dao()
-        dto_model = [CustomerGETSchemas.model_validate(row, from_attributes=True) for row in orm_model] if orm_model else None
+        dto_model = [CustomerRelSchemas.model_validate(row, from_attributes=True) for row in orm_model] if orm_model else None
         return dto_model
