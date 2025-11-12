@@ -11,14 +11,14 @@ async def select_customers():
     result = await CustomersService().select_customers_service()
     if result:
         return result
-    raise HTTPException(status_code=400, detail='')
+    raise HTTPException(status_code=400, detail='Bad request')
 
 @router.post('/create')
 async def create_customers(customer: CustomerPOSTSchemas):
     result = await CustomersService().create_customers_service(customer)
     if result:
         return result
-    raise HTTPException(status_code=400, detail='')
+    raise HTTPException(status_code=400, detail='Bad request')
 
 @router.patch('/update')
 async def update_customers(customer_id: CustomersIdDep, customer_info: CustomerPATCHSchemas):
