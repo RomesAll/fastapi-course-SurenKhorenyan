@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from config import session_factory
+from config import session_factory, engine
+from config.models import Base
 from sqlalchemy import text
 from api_v1 import router
 import uvicorn
@@ -24,6 +25,12 @@ async def get_version_postgresql():
         res = await session.execute(text("SELECT VERSION()"))
         res_scalar = res.scalar()
     return {"message": res_scalar}
+
+@app.post('/setupdb')
+async def setup_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)

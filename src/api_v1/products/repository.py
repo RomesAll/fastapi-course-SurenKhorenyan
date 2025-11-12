@@ -42,7 +42,7 @@ class ProductsDAO:
     async def select_products_dao(self) -> list[ProductsORM]:
         async with session_factory() as session:
             try:
-                stmt = select(ProductsORM).options(joinedload(CustomersORM.products))
+                stmt = select(ProductsORM).options(joinedload(ProductsORM.customer))
                 result = await session.execute(stmt)
                 return result.scalars().all()
             except Exception as exc:

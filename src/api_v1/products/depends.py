@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException
 from typing import Annotated
-from .schemas import ProductPOSTSchemas
+from .schemas import ProductPATCHSchemas
 from .service import ProductsDAO
 
 async def get_product_by_id(product_id: int):
@@ -10,4 +10,4 @@ async def get_product_by_id(product_id: int):
     raise HTTPException(status_code=404, detail='Product not found')   
 
 ProductsIdDep = Annotated[int, Depends(get_product_by_id)]
-ProductsInfoDep = Annotated[ProductPOSTSchemas, Depends(ProductPOSTSchemas)]
+ProductsInfoDep = Annotated[ProductPATCHSchemas, Depends(ProductPATCHSchemas)]

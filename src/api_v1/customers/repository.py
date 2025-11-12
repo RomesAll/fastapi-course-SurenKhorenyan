@@ -35,14 +35,17 @@ class CustomersDAO:
 
     async def delete_customers_dao(self, customer_id: int) -> None:
         async with session_factory() as session:
-            customer = await session.get(CustomersORM, customer_id)
-            await session.delete(customer)
-            await session.commit()
+            try:
+                customer = await session.get(CustomersORM, customer_id)
+                await session.delete(customer)
+                await session.commit()
+            except Exception as exc:
+                return None
 
     async def select_customers_dao(self) -> list[CustomersORM]:
         async with session_factory() as session:
             try:
-                stmt = select(CustomersORM).options(selectinload(ProductsORM))
+                stmt = select(CustomersORM).options(selectinload(CustomersORM.products))
                 result = await session.execute(stmt)
                 return result.scalars().all()
             except Exception as exc:
