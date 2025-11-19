@@ -1,8 +1,14 @@
 import uuid
 from fastapi import FastAPI, Depends, HTTPException, status, Header, Request, Cookie, Response
-import uvicorn, secrets, datetime
+import uvicorn, secrets, bcrypt, jwt
 from typing import Annotated
-from fastapi.security import HTTPBasicCredentials, HTTPBasic
+from fastapi.security import HTTPBasicCredentials, HTTPBasic, HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, ConfigDict
+from pathlib import Path
+from pydantic import SecretStr
+from datetime import datetime, timedelta
+
+#secrets.compare_digest() и SecretStr(pydantic) Не полноценный вариант, лучше использовать bcrypt
 
 app = FastAPI()
 
@@ -77,6 +83,98 @@ def get_user_info(user_info = Depends(get_user_by_session)):
     if user_info is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
     return user_info'''
+
+# JWT Token
+
+BASE_DIR = Path(__file__).parent
+
+class AuthJWT(BaseModel):
+    public_key_path: Path = BASE_DIR / 'certs' / 'jwt-public.pem'
+    private_key_path: Path = BASE_DIR / 'certs' / 'jwt-private.pem'
+    algoritm: str = 'RS256'
+    access_token_exp: int = 10
+
+class UserSchema(BaseModel):
+    username: str
+    password: bytes
+    active: bool = True
+    model_config = ConfigDict(strict=True)
+
+class TokenInfo(BaseModel):
+    access_token: str
+    token_type: str
+
+class UserCreds(BaseModel):
+    username: str
+    password: str
+
+auth_jwt = AuthJWT()
+
+def encode_jwt(payload: dict, 
+               pivate_key=auth_jwt.private_key_path.read_text(), 
+               algorithm=auth_jwt.algoritm,
+               exp=auth_jwt.access_token_exp):
+    update_payload = payload.copy()
+    update_payload['exp'] = datetime.utcnow() + timedelta(minutes=exp)
+    update_payload['iat'] = datetime.utcnow()
+    encoded_token = jwt.encode(payload=update_payload, key=pivate_key, algorithm=algorithm)
+    return encoded_token
+
+def decode_jwt(token, 
+               public_key=auth_jwt.public_key_path.read_text(), 
+               algorithm=auth_jwt.algoritm):
+    decoded_token = jwt.decode(token, public_key, algorithms=[algorithm])
+    return decoded_token
+
+def hash_password(password: str) -> bytes:
+    salt = bcrypt.gensalt()
+    pwd_bytes = password.encode()
+    return bcrypt.hashpw(password=pwd_bytes, salt=salt)
+
+def check_validate_password(password: str, hashed_password: bytes) ->bool:
+    return bcrypt.checkpw(password.encode(), hashed_password)
+
+user_1 = UserSchema(username='roman', password=hash_password('qwerty'), active=True)
+user_2 = UserSchema(username='josh', password=hash_password('1111'), active=True)
+
+user_db = {
+    user_1.username: user_1,
+    user_2.username: user_2
+}
+
+def validate_user_info(creds: UserCreds = Depends(UserCreds)):
+    if not creds.username in user_db:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
+    psw_hashed = hash_password(creds.password)
+    if not check_validate_password(creds.password, psw_hashed):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
+    return user_db.get(creds.username)
+
+@app.post('/login')
+def login(response: Response, user: UserSchema = Depends(validate_user_info)):
+    payload = {
+        "sub": user.username,
+        "username": user.username
+    }
+    token = encode_jwt(payload)
+    response.set_cookie('Authorization', f'Bearer {token}')
+    return TokenInfo(access_token=token, token_type='Bearer')
+
+def validate_token(token: str | None = Cookie(alias='Authorization', default=None)):
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Invalid token')
+    token_type, access_token = token.split(' ')
+    payload = decode_jwt(access_token)
+    return payload
+
+@app.get('/user/info')
+def get_user_info(user_info = Depends(validate_token)):
+    return {"message": user_info.get('sub')}
+
+@app.post('/logout')
+def logout(resonse: Response):
+    resonse.delete_cookie('Authorization')
+    return {'message': 'ok'}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)
