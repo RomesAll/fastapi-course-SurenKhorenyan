@@ -1,5 +1,6 @@
 import uuid
 from fastapi import FastAPI, Depends, HTTPException, status, Header, Request, Cookie, Response
+from jwt.exceptions import InvalidTokenError
 import uvicorn, secrets, bcrypt, jwt
 from typing import Annotated
 from fastapi.security import HTTPBasicCredentials, HTTPBasic, HTTPBearer, HTTPAuthorizationCredentials
@@ -84,15 +85,19 @@ def get_user_info(user_info = Depends(get_user_by_session)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
     return user_info'''
 
-# JWT Token
+'''# JWT Token
 
 BASE_DIR = Path(__file__).parent
+
+http_bearer = HTTPBearer()
 
 class AuthJWT(BaseModel):
     public_key_path: Path = BASE_DIR / 'certs' / 'jwt-public.pem'
     private_key_path: Path = BASE_DIR / 'certs' / 'jwt-private.pem'
     algoritm: str = 'RS256'
     access_token_exp: int = 10
+
+auth_jwt = AuthJWT()
 
 class UserSchema(BaseModel):
     username: str
@@ -107,8 +112,6 @@ class TokenInfo(BaseModel):
 class UserCreds(BaseModel):
     username: str
     password: str
-
-auth_jwt = AuthJWT()
 
 def encode_jwt(payload: dict, 
                pivate_key=auth_jwt.private_key_path.read_text(), 
@@ -150,6 +153,15 @@ def validate_user_info(creds: UserCreds = Depends(UserCreds)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
     return user_db.get(creds.username)
 
+def validate_token(token: HTTPAuthorizationCredentials = Depends(http_bearer)): # token = Header(alias='Auth') Authorization почему то он не выводит, пока не знаю почему :(
+    if token.credentials is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Invalid token')
+    try:
+        payload = decode_jwt(token.credentials)
+    except InvalidTokenError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token error')
+    return payload
+
 @app.post('/login')
 def login(response: Response, user: UserSchema = Depends(validate_user_info)):
     payload = {
@@ -157,24 +169,13 @@ def login(response: Response, user: UserSchema = Depends(validate_user_info)):
         "username": user.username
     }
     token = encode_jwt(payload)
-    response.set_cookie('Authorization', f'Bearer {token}')
+    response.headers['Authorization'] = f'Bearer {token}'
     return TokenInfo(access_token=token, token_type='Bearer')
-
-def validate_token(token: str | None = Cookie(alias='Authorization', default=None)):
-    if token is None:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Invalid token')
-    token_type, access_token = token.split(' ')
-    payload = decode_jwt(access_token)
-    return payload
 
 @app.get('/user/info')
 def get_user_info(user_info = Depends(validate_token)):
     return {"message": user_info.get('sub')}
-
-@app.post('/logout')
-def logout(resonse: Response):
-    resonse.delete_cookie('Authorization')
-    return {'message': 'ok'}
+'''
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)
